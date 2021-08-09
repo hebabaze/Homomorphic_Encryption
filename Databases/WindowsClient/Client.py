@@ -35,7 +35,7 @@ with s:
         elif x=='3':
             s.send(x.encode())
             dbsend(fname,BS,s)
-            logging.info(" Database sent..!! \n")
+            logging.info(" Database sent..!!")
             show(L)
 
 #######Receiv Sum
@@ -74,9 +74,10 @@ with s:
                 try:
                     #709.78271 is the largest value I can compute the exp of on my machine
                     prod=round(math.exp(prod))
+                    logging.info(f" [+] Resultat produit  est [{prod}]")
                 except OverflowError:
                     logging.warning("Input value is greater than allowed limit")
-                logging.info(f" [+] Resultat produit  est [{prod}]")
+                
                 show(L)
 ###___Réinitiliser la liste des choix
         elif x=='7':
