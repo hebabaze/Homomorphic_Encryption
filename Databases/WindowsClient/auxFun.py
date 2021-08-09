@@ -18,7 +18,7 @@ format="%(asctime)s.%(msecs)03d--%(levelname)s : %(message)s"
 logging.basicConfig(format=format,level=logging.INFO,datefmt="%H:%M:%S")
 
 # [+] : BLOC D'ENVOI
-def sendid(x,pkr):
+def sendid(x):
     s.send(x.encode())
     id=input('Saisir l\'id de colonne à calculer >__ ')
     s.send(id.encode()) # id de colonne concerné
@@ -26,7 +26,7 @@ def sendid(x,pkr):
 # [+] : BLOC D'AFFICHAGE _____________________________________________________________________________________________________
 
     #==> dictonnaire des choix
-L={'0': 'Exit()', '1': 'Create Database','11':'Load existing DB', '2': 'Encrypt columns' ,'20':'encrypt Table','3': 'Send DataBase', '4': 'Calcul Sum', '5': 'Calcul Avg','6':'produit Log Mul','60':'Produit Russ Mul','7':'Restart'}
+L={'0': 'Exit()', '1': 'Create Database','11':'Load existing DB', '2': 'Encrypt columns' ,'20':'encrypt Table','3': 'Send DataBase', '4': 'Calcul Sum', '5': 'Calcul Avg','6': 'Product_Log_Mul','60':'Produit Russ Mul','7':'Restart'}
 R=L.copy()
      
     #==> Fonction pour afficher la liste des Choix
@@ -115,6 +115,7 @@ def rsadecrypt(x,privkey):
     x=unhexlify(x)
     dec=rsa.decrypt(x,privkey)
     return dec.decode()
+#########################################_________________ 6
 def applylog(tabx,id,pkr):
     L=[]
     pkr = paillier.PaillierPublicKey(int(pkr))
@@ -125,11 +126,32 @@ def applylog(tabx,id,pkr):
     M=[priv_key.decrypt(x) for x in P]
     for x in M: # Check 0 result
         if x==0:
-            return []
+            logging.warning(" Product equal to zéro")
+            Lprod="End"
+            Lprod=dill.dumps(Lprod)
+            s.send(Lprod)
+            return "Zéro Result Detected!.."
         else:
             C=[math.log(e) for e in M]
             Ce=[pub_key.encrypt(x) for x in C]
-    return Ce
+            logging.info(f"\n {Ce} \n")
+            Lprod=dill.dumps(Ce)
+            s.send(Lprod)
+            rprod=s.recv(BS)
+            rprod=dill.loads(rprod)
+            rprod=priv_key.decrypt(rprod)
+            logging.warning(f"Prod received before exp {rprod}")
+            try:
+              #709.78271 is the largest value I can compute the exp of on my machine
+              rprod=round(math.exp(rprod))
+              logging.info(f" [+] Resultat produit  est [{rprod}]")
+            except:
+              logging.warning("Input value is greater than allowed limit")
+    Lprod="End"
+    Lprod=dill.dumps(Lprod)
+    s.send(Lprod)
+    return ("Log Mul Completed")
+
 def RussMul(s,pub_key,pkr,BS,tabx,id):
   L=[] # Pour Stocker Les Valeurs à calculer 
   pkr = paillier.PaillierPublicKey(int(pkr)) #pkr=pub_key.n pour reconstruire le ciphertext
@@ -143,6 +165,9 @@ def RussMul(s,pub_key,pkr,BS,tabx,id):
   for x in M: # Check 0 result
     if x==0:
       logging.critical("0 Result Dectected")
+      tab="End"
+      tab=dill.dumps(tab)
+      s.send(tab)
       return "Zéro Result Detected!.."
     else:
       i=0

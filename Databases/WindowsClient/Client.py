@@ -40,7 +40,7 @@ with s:
 
 #######Receiv Sum
         elif x=='4':
-            sendid(x,pkr)
+            sendid(x)
             sum=s.recv(BS)
             sum=dill.loads(sum)
             sum=priv_key.decrypt(sum)
@@ -48,7 +48,7 @@ with s:
             show(L)
 #######Receiv AVG
         elif x=='5':
-            sendid(x,pkr)
+            sendid(x)
             avg=s.recv(BS)
             avg=dill.loads(avg)
             avg=priv_key.decrypt(avg)
@@ -57,32 +57,14 @@ with s:
 
 #######Calculer le Produit d'une Colonne 
         elif x=='6':
-            id=int(input('Saisir l\'id de colonne à calculer >__ '))
-            Lprod=applylog(tabx,id,pkr)
-            if not Lprod:
-                logging.warning(" Product equal to zéro")
-            else:
-                s.send(x.encode())
-                logging.info("\n {Lprod} \n")
-                Lprod=dill.dumps(Lprod)
-                s.send(Lprod)
-                
-                prod=s.recv(4096)
-                prod=dill.loads(prod)
-                prod=priv_key.decrypt(prod)
-                logging.warning(f"Prod received before exp {prod}")
-                try:
-                    #709.78271 is the largest value I can compute the exp of on my machine
-                    prod=round(math.exp(prod))
-                    logging.info(f" [+] Resultat produit  est [{prod}]")
-                except OverflowError:
-                    logging.warning("Input value is greater than allowed limit")
-                
-                show(L)
-        elif x=='60':
-            id=int(input('Saisir l\'id de colonne à calculer >__ '))
             s.send(x.encode())
-            RussMul(s,pub_key,pkr,BS,tabx,id)
+            id=input('Saisir l\'id de colonne à calculer >__ ')
+            applylog(tabx,int(id),pkr)
+            show(L)
+        elif x=='60':
+            s.send(x.encode())
+            id=input('Saisir l\'id de colonne à calculer >__ ')
+            RussMul(s,pub_key,pkr,BS,tabx,int(id))
 ###___Réinitiliser la liste des choix
         elif x=='7':
             L=R.copy()
