@@ -51,7 +51,6 @@ def affiche(tabx):
         #Fonction pour créer la base de donnée et le tableau
 def loaddb():
     cmd = 'python C:\\Users\\Root\\Documents\\GitHub\\Homomorphic_Encryption\\Databases\\WindowsClient\\creatDB.py'
-    logging.info(f"Databases Created \n")
     os.system(cmd)
     basepath ='C:\\Users\\Root\\Documents\\GitHub\\Homomorphic_Encryption\\Databases\\WindowsClient'
     List_db=[]
