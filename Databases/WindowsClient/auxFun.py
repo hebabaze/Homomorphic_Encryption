@@ -6,7 +6,7 @@ import random
 import os
 import dill
 import socket
-HOST = '192.168.1.10'  # The server's hostname or IP address
+HOST = '192.168.1.101'  # The server's hostname or IP address
 PORT = 65432        # The port used by the server
 SEPARATOR = "<SEPARATOR>"
 BS = 4096 # send 4096 bytes each time step
