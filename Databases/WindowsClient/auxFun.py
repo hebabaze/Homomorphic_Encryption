@@ -161,11 +161,11 @@ def RussMul(s,pub_key,pkr,BS,tabx,id):
         logging.info(f"Sending Table n° {j} ==> {tab}")
         j+=1
         tab=dill.dumps(tab)
-        tab=zlib.compress(tab)
+        #tab=zlib.compress(tab)
         s.send(tab)
         #############___Receiv Sum
         result=s.recv(BS)
-        result=zlib.decompress(result)
+#        #result=zlib.decompress(result)
         result=dill.loads(result)
         ##################_____Decrypt
         result=priv_key.decrypt(result)
@@ -173,8 +173,9 @@ def RussMul(s,pub_key,pkr,BS,tabx,id):
         m1=result
         #################__BreakOut
     logging.info(f"Final Result :[{result}]")
-    tab=[]
+    tab="End"
     tab=dill.dumps(tab)
-    tab=zlib.compress(tab)
+    #tab=zlib.compress(tab)
     s.send(tab)
+    logging.critical("Task Completed")
     return "Completed Task"  
