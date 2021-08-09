@@ -79,13 +79,17 @@ with s:
                     logging.warning("Input value is greater than allowed limit")
                 
                 show(L)
+        elif x=='60':
+            id=int(input('Saisir l\'id de colonne à calculer >__ '))
+            s.send(x.encode())
+            RussMul(s,pub_key,pkr,BS,tabx,id)
 ###___Réinitiliser la liste des choix
         elif x=='7':
             L=R.copy()
             show(L)
 ###____quiter()
         elif x=='0':
-            cmd = 'rm *.db'
+            cmd = 'del *.db'
             os.system(cmd)
             break
         elif x not in list(L.keys()):

@@ -6,7 +6,8 @@ import random
 import os
 import dill
 import socket
-HOST = '192.168.1.101'  # The server's hostname or IP address
+import zlib
+HOST = '192.168.1.10'  # The server's hostname or IP address
 PORT = 65432        # The port used by the server
 SEPARATOR = "<SEPARATOR>"
 BS = 4096 # send 4096 bytes each time step
@@ -25,16 +26,16 @@ def sendid(x,pkr):
 # [+] : BLOC D'AFFICHAGE _____________________________________________________________________________________________________
 
     #==> dictonnaire des choix
-L={'0': 'Exit()', '1': 'Create Database','11':'Load existing DB', '2': 'Encrypt columns' ,'20':'encrypt Table','3': 'Send DataBase', '4': 'Calcul Sum', '5': 'Calcul Avg','6':'produit','7':'Restart'}
+L={'0': 'Exit()', '1': 'Create Database','11':'Load existing DB', '2': 'Encrypt columns' ,'20':'encrypt Table','3': 'Send DataBase', '4': 'Calcul Sum', '5': 'Calcul Avg','6':'produit Log Mul','60':'Produit Russ Mul','7':'Restart'}
 R=L.copy()
      
     #==> Fonction pour afficher la liste des Choix
 
 def show(L):
-    print('')
+  
     for x,y in L.items():
       print(f"[{x}] {y}")
-    print('\n')
+
     
     #==> Fonction pour Afficher le contenu de tableur tinydb
     
@@ -122,10 +123,58 @@ def applylog(tabx,id,pkr):
         L.append(list(Far.values())[id])
     P=[paillier.EncryptedNumber(pkr, x, 0) for x in L]
     M=[priv_key.decrypt(x) for x in P]
-    for x in M:
+    for x in M: # Check 0 result
         if x==0:
             return []
         else:
             C=[math.log(e) for e in M]
             Ce=[pub_key.encrypt(x) for x in C]
     return Ce
+def RussMul(s,pub_key,pkr,BS,tabx,id):
+  L=[] # Pour Stocker Les Valeurs à calculer 
+  pkr = paillier.PaillierPublicKey(int(pkr)) #pkr=pub_key.n pour reconstruire le ciphertext
+  # Stocker les valeur à calculer 
+  for x in range(1,len(tabx)+1):
+        Far=tabx.get(doc_id=x)
+        L.append(list(Far.values())[id])
+  P=[paillier.EncryptedNumber(pkr, x, 0) for x in L]
+  #Decrypter les valeur à traiter
+  M=[priv_key.decrypt(x) for x in P]
+  for x in M: # Check 0 result
+    if x==0:
+      logging.critical("0 Result Dectected")
+      return "Zéro Result Detected!.."
+    else:
+      i=0
+      j=1
+      m1=M[i]
+      for i in range(0,len(M)-1):
+        tab=[]
+        m2=M[i+1]
+        while m1>0:
+          if m1%2==1 :
+            e2=pub_key.encrypt(m2)
+            tab.append(e2)
+          m1=m1//2
+          m2=m2*2
+        ##########___Send tab
+        logging.info(f"Sending Table n° {j} ==> {tab}")
+        j+=1
+        tab=dill.dumps(tab)
+        tab=zlib.compress(tab)
+        s.send(tab)
+        #############___Receiv Sum
+        result=s.recv(BS)
+        result=zlib.decompress(result)
+        result=dill.loads(result)
+        ##################_____Decrypt
+        result=priv_key.decrypt(result)
+        logging.info(f"Multiplication n° {j} Result :[{result}]")
+        m1=result
+        #################__BreakOut
+    logging.info(f"Final Result :[{result}]")
+    tab=[]
+    tab=dill.dumps(tab)
+    tab=zlib.compress(tab)
+    s.send(tab)
+    return "Completed Task"  
