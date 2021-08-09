@@ -12,6 +12,14 @@ import logging # journalisation
 #__Configuration de logging
 format="%(asctime)s.%(msecs)03d--%(levelname)s : %(message)s"
 logging.basicConfig(format=format,level=logging.INFO,datefmt="%H:%M:%S")
+###########################################
+def cleandb():
+    import os
+    try:
+        cmd = 'rm *.db'
+        os.system(cmd)
+    except:
+        logging.info('Clean directory')
 ##########################
 def affiche(tabx): # Affichage de tableu
     print('')

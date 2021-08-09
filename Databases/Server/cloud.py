@@ -1,7 +1,6 @@
 #!/usr/bin/env python3
 from aux import *
-
-
+cleandb()
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
     #-=-=-Création de Socket
     s.setsockopt(socket.SOL_SOCKET,socket.SO_REUSEADDR,1)
