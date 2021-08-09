@@ -54,4 +54,6 @@ mpirun -np 2 -hostfile machines python3 -m mpi4py pfe.py
   ```bash
   mpiexec -n 2 python -m mpi4py C:\Users\usor\Desktop\ENSIAS\pfe.py
   ```
+  - ### To Execut On Collab 
+  `` !sudo mpirun --allow-run-as-root  -n 2 python3 -m mpi4py /content/test.py `` 
 
