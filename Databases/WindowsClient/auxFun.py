@@ -1,6 +1,7 @@
 from encryptFun import *
 from tinydb import TinyDB, Query
-
+from pathlib import Path
+import glob
 import math
 import random
 import os
@@ -51,17 +52,16 @@ def affiche(tabx):
         
         #Fonction pour créer la base de donnée et le tableau
 def loaddb():
-    cmd = 'python C:\\Users\\Root\\Documents\\GitHub\\Homomorphic_Encryption\\Databases\\WindowsClient\\creatDB.py'
+    #cmd = 'python C:\\Users\\Root\\Documents\\GitHub\\Homomorphic_Encryption\\Databases\\WindowsClient\\creatDB.py'
+    cmd="python Databases/WindowsClient/creatDB.py"
     os.system(cmd)
-    basepath ='C:\\Users\\Root\\Documents\\GitHub\\Homomorphic_Encryption\\Databases\\WindowsClient'
-    List_db=[]
-    for entry in os.listdir(basepath):
-        if entry.endswith('.db'):
-            List_db.append(entry)
+    List_db=glob.glob("Databases\*db")
+    List_db=[Path(x).stem for x in List_db]
     logging.info(f"List des DBs {List_db}\n")
     indice=int(input("[*] Saisir L'id da base de données >>.. "))
-    fname=List_db[indice]
-    db = TinyDB(fname)
+    fname=List_db[indice]+'.db'
+    print('fname',fname)
+    db = TinyDB(f"Databases\{fname}")
     tabx=db.table('Hr')
     affiche(tabx)
     rdic=tabx.get(doc_id=1) # to check value type
