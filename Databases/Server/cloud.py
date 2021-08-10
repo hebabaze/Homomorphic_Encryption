@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-from aux import *
+from auxFun import *
+import time
+import jedi
+import zlib
 cleandb()
 with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
     #-=-=-Création de Socket
@@ -16,8 +19,10 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         #reconstruir la clé  public de paiiler
         pkr = paillier.PaillierPublicKey(int(pks))
         while True :
-            flag=conn.recv(8).decode()
-            #_Recevoir la Base de données 
+            flag=conn.recv(4).decode()
+            #_Recevoir la Base de données
+            if not flag:
+                print("Not Flag")
             if flag=='3':
                 tabx=dbrecv(conn,BS)
             #Calcul de la Somme     
@@ -28,7 +33,7 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 xsum=dill.dumps(xsum)
                 conn.send(xsum)
             #Calcul de la moyenne
-            elif flag=='5':
+            if flag=='5':
                 # recevoir le id de colonne a calculé
                 id=int(conn.recv(8).decode())
                 n,s= sum(tabx,conn,pkr,id)
@@ -38,12 +43,42 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
                 print("n",n)
                 conn.send(avg)
             ##Calcul de produit
-            elif flag=='6':
-                data = conn.recv(16000)
-                data = dill.loads(data)
-                produit(data,conn)
-        
-            elif flag=='0':
+            if flag=='6':
+                print("[ =====> Log Mul <=====]")
+                while True:
+                    data = conn.recv(BS)
+                    data = dill.loads(data)
+                    if data=="End":
+                        print(" Log Mul Out Data = End")
+                        break
+                    else:
+                        sum=produit(data,conn)
+                        xsum=dill.dumps(sum)
+                        conn.send(xsum)
+            if flag=='60':
+                print("[ =====> Mul Russ <=====]")
+                while True:
+                    j=1
+                    debut=time.time() 
+                    tab= conn.recv(BS)
+                    #tab=zlib.decompress(tab)
+                    tab=dill.loads(tab)
+                    if tab =="End":
+                        end=time.time()
+                        #.warning('Aucunes données reçus...Connection terminée..!')
+                        #logging.info(f"Total Time {round((end-debut)*1000,2)} ms")
+                        print('Aucunes données reçus...Mul_Russ terminée..!')
+                        print(f"Total Time {round((end-debut)*1000,2)} ms")
+                        break
+                    print(f'tab {j} Recus')
+                    j=j+1
+                    sum=0
+                    for x in tab :
+                        sum += x
+                    sum=dill.dumps(sum)
+                    #sum=zlib.compress(sum)
+                    conn.send(sum)
+            if flag=='0':
                 break
     
 

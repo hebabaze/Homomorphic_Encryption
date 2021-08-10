@@ -38,13 +38,21 @@ def sum(tabx,conn,pkr,id): # fonction de calcul de somme selon l'id de colonne
     print(f'la somme calculé {sum}')
     return n,sum
 ####################################################
-def produit(data,conn): # 
-    sum=0
-    for x in data :
-        sum+=x
-    print(f'le produit calculé {sum}')
-    xsum=dill.dumps(sum)
-    conn.send(xsum)
+def produit(data,conn):
+    print("The Data :",data)
+    if not data or data =="End":
+        print(" Not Data Detected !")
+        return 1
+    else:
+        sum=0
+        for x in data :
+            sum+=x
+            print(f'le produit calculé {sum}')
+    print("Final :_________",sum)
+    return sum
+            
+            
+        
     
 ############################################################
 def dbrecv(conn,BS):
@@ -59,7 +67,7 @@ def dbrecv(conn,BS):
     #####################################
     with open(fname, "wb") as f:
         while True :
-            for i in tqdm(range(64,filesize,64),unit="Bytes",unit_divisor=64,desc=f"Sending [{fname}]",colour= 'green'):
+            for i in tqdm(range(64,filesize,64),unit="Bytes",unit_divisor=64,desc=f"Receiving [{fname}]",colour= 'green'):
                 bytes_read = conn.recv(64)
                 f.write(bytes(bytes_read))
                 if filesize-i < 64 :
