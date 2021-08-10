@@ -1,13 +1,8 @@
 from encryptFun import *
 from tinydb import TinyDB, Query
 from pathlib import Path
-import glob
-import math
-import random
-import os
-import dill
-import socket
-import zlib
+import glob, math, random, os, dill,socket, zlib
+
 HOST = '192.168.1.10'  # The server's hostname or IP address
 PORT = 65432        # The port used by the server
 SEPARATOR = "<SEPARATOR>"
