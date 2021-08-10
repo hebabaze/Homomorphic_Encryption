@@ -13,7 +13,7 @@ def rentable() :
   dbt = TinyDB('mydb.db')
   dbt.drop_table('Hr')
   tabx = dbt.table('Hr')
-  for i in tqdm(range(1,20),unit_divisor=1,desc=f"Creating mydb.db..",colour= 'Blue'):
+  for i in tqdm(range(1,200),unit_divisor=1,desc=f"Creating mydb.db..",colour= 'Blue'):
       tabx.insert({'id':i, 'age': 10 ,'nom': 'Salah', 'years':1000 })
   logging.info(" database created : mydb.db" )
   logging.info(f"All Databases Created \n")
