@@ -7,26 +7,17 @@ from tinydb import TinyDB, Query
 import dill # sérialisation
 import socket
 BS = 8132
-HOST = '192.168.1.107'
+HOST = '135.181.108.235'
 # Standard loopback interface address (localhost)
 PORT = 65432        # Port to listen on (non-privileged ports are > 1023)
 ###########################################
 def cleandb():
-    import subprocess
+    import os
     try:
-        cmd0 = 'del *x.db';os.system(cmd0)
-        cmd = 'del C:\\Users\\Root\\Documents\\GitHub\\Homomorphic_Encryption\\Databases\\Server\\*.db';os.system(cmd)
-        cmd1 = 'del C:\\Users\\Root\\Desktop\\KivY\\KivyFheDb\\*x.db';os.system(cmd)
-        cmd2 = 'del C:\\Users\\Root\\Documents\\GitHub\\Homomorphic_Encryption\\Databases\\Server\\*.db';os.system(cmd)
-        cmd3 ='del rC:/Users/Root/Documents/GitHub/Homomorphic_Encryption/Databases/Server/*.db';os.system(cmd)
-        subprocess.Peopen(cmd0,shell=True)
-        subprocess.Peopen(cmd,shell=True)
-        subprocess.Peopen(cmd1,shell=True)
-        subprocess.Peopen(cmd2,shell=True)
-        subprocess.Peopen(cmd3,shell=True)
+        cmd = 'rm *.db'
+        os.system(cmd)
     except:
         print('Clean directory')
-##########################
 def affiche(tabx): # Affichage de tableu
     print('')
     for Y in tabx:
@@ -40,14 +31,14 @@ def sumf(tabx,conn,pkr,id): # fonction de calcul de somme selon l'id de colonne
     n=0
     for x in tabx :
         n+=1
-        sum+=paillier.EncryptedNumber(pkr, int(list(x.values())[id]), 0) 
+        sum+=paillier.EncryptedNumber(pkr, int(list(x.values())[id][0]), int(list(x.values())[id][1]) )
     print(f'la somme calculé {sum}')
     return n,sum
 ####################################################
-def produit(data,conn):
+def produit(data,conn): #Function used in Log mul 
     print("The Data :",data)
     if not data or data =="End":
-        print(" Not Data Detected !")
+        print(" No Data Detected !")
         return 1
     else:
         sum=0
@@ -56,26 +47,30 @@ def produit(data,conn):
             print(f'le produit calculé {sum}')
     print("Final :_________",sum)
     return sum
-            
-            
-        
-    
 ############################################################
 def dbrecv(conn,BS):
-    fname =conn.recv(BS).decode('utf-8')     # recevoir le nom de fichier et son taille
-    filesize =conn.recv(8).decode('utf-8')
+    SEPARATOR='@'
+    fname =conn.recv(128).decode('utf-8')     # recevoir le nom de fichier et son taille 
+    filesize = conn.recv(4).decode('utf-8')
     # remove absolute path if there is
-    fname = os.path.basename(fname)
-    print("this is fname",fname)
-    # convert filesize to integer
+    fname = os.path.basename(fname) 
+    print("This is file name",fname)
+    print("This is File Size",filesize)
+    # convert filesize to integer 
     filesize = int(filesize)
-    print("this is filesize",filesize)
+    print("This is File Size",filesize)
     fname=fname+'.db'
     #####################################
-    print("Start Receiving File")
+    print("Start receiving file data")
     with open(fname, "wb") as f:
-        bytes_read = conn.recv(filesize)
-        f.write(bytes(bytes_read))
+        while True :
+            for i in tqdm(range(64,filesize,64),unit="Bytes",unit_divisor=64,desc=f"Receiving [{fname}]",colour= 'green'):
+                bytes_read = conn.recv(64)
+                f.write(bytes(bytes_read))
+                if filesize-i < 64 :
+                    bytes_read = conn.recv(filesize-i)
+                    f.write(bytes(bytes_read))
+            break
     ################################################
     db= TinyDB(fname)  # load database
     print("\n")
@@ -87,3 +82,4 @@ def dbrecv(conn,BS):
     affiche(tabx)
     return tabx
 ######################################################
+
