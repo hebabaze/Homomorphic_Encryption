@@ -1,20 +1,22 @@
+import os.path,zlib
+from os import path
 from pathlib import Path
 from tqdm import tqdm# la barre de transfer
-import os
+import os,time
 import math
 import random
 from tinydb import TinyDB, Query
-import dill # sérialisation
+import dill # sÃ©rialisation
 import socket
 BS = 8132
-HOST = '135.181.108.235'
+
 # Standard loopback interface address (localhost)
-PORT = 65432        # Port to listen on (non-privileged ports are > 1023)
+        # Port to listen on (non-privileged ports are > 1023)
 ###########################################
 def cleandb():
     import os
     try:
-        cmd = 'rm *.db'
+        cmd = 'rm /tmp/*.db'
         os.system(cmd)
     except:
         print('Clean directory')
@@ -32,7 +34,7 @@ def sumf(tabx,conn,pkr,id): # fonction de calcul de somme selon l'id de colonne
     for x in tabx :
         n+=1
         sum+=paillier.EncryptedNumber(pkr, int(list(x.values())[id][0]), int(list(x.values())[id][1]) )
-    print(f'la somme calculé {sum}')
+    print(f'la somme calculÃ© {sum}')
     return n,sum
 ####################################################
 def produit(data,conn): #Function used in Log mul 
@@ -44,42 +46,49 @@ def produit(data,conn): #Function used in Log mul
         sum=0
         for x in data :
             sum+=x
-            print(f'le produit calculé {sum}')
+            print(f'le produit calculÃ© {sum}')
     print("Final :_________",sum)
     return sum
 ############################################################
-def dbrecv(conn,BS):
-    SEPARATOR='@'
-    fname =conn.recv(128).decode('utf-8')     # recevoir le nom de fichier et son taille 
-    filesize = conn.recv(4).decode('utf-8')
-    # remove absolute path if there is
-    fname = os.path.basename(fname) 
-    print("This is file name",fname)
-    print("This is File Size",filesize)
-    # convert filesize to integer 
-    filesize = int(filesize)
-    print("This is File Size",filesize)
-    fname=fname+'.db'
-    #####################################
-    print("Start receiving file data")
-    with open(fname, "wb") as f:
-        while True :
-            for i in tqdm(range(64,filesize,64),unit="Bytes",unit_divisor=64,desc=f"Receiving [{fname}]",colour= 'green'):
-                bytes_read = conn.recv(64)
-                f.write(bytes(bytes_read))
-                if filesize-i < 64 :
-                    bytes_read = conn.recv(filesize-i)
-                    f.write(bytes(bytes_read))
+def dbrecv(conn):
+    dbname=conn.recv(16).decode()
+    dbname = os.path.basename(dbname)
+    print(f"[+] the received file name : {dbname}")
+    print(f"Waitting for {dbname}..>>",end='..')
+    while True:
+        dirs = os.listdir( "/tmp/" )
+        if dbname in dirs:
+            print("Got it !")
             break
-    ################################################
-    db= TinyDB(fname)  # load database
+        else:
+            time.sleep(1)
+            print("...",end='...')    
+    print("Done receiveing")
+    os.chdir("/tmp")
+    print('The crypted file stocked in:      ', os.getcwd())
+    received_db= TinyDB(dbname)  # load database
     print("\n")
     print('The crypted file stocked in:      ', os.getcwd())
-    print('Listes des tableaux ',db.tables())
-    x=db.tables()
-    tabx=db.table(list(x)[0])
-    print("le tableau reçus :")
-    affiche(tabx)
+    print('Listes des tableaux ',received_db.tables())
+    try:
+        x=received_db.tables()
+    except:
+        print("Reciveing data failed")
+        conn.send("Reciveing data failed".encode())
+        return  
+    try:
+        tabx=received_db.table(list(x)[0])
+        conn.send("Receiving Database Successfully".encode())
+        print("Receiving Database Successfully")
+    except:
+        conn.send("Reciveing data failed".encode())
+        return          
+    print("Received Table Head values :")
+    for i in range(1,3):
+        rdic=tabx.get(doc_id=i) # to check value type
+        print(rdic)
+    print("*************************************************************************")
+    print(tabx.all())
     return tabx
 ######################################################
 
