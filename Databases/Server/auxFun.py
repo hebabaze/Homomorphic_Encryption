@@ -1,17 +1,14 @@
 import os.path,zlib
 from os import path
 from pathlib import Path
-from tqdm import tqdm# la barre de transfer
-import os,time
-import math
-import random
+import os,time, math,dill,socket,logging
 from tinydb import TinyDB, Query
-import dill # sÃ©rialisation
-import socket
 BS = 8132
-
-# Standard loopback interface address (localhost)
-        # Port to listen on (non-privileged ports are > 1023)
+# Port to listen on (non-privileged ports are > 1023)
+###########################################
+format="%(asctime)s.%(msecs)03d--%(levelname)s : %(message)s"
+logging.basicConfig(format=format,level=logging.INFO,datefmt="%H:%M:%S")
+#logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
 ###########################################
 def cleandb():
     import os
@@ -19,76 +16,61 @@ def cleandb():
         cmd = 'rm /tmp/*.db'
         os.system(cmd)
     except:
-        print('Clean directory')
+        logging.info('Clean directory')
 def affiche(tabx): # Affichage de tableu
-    print('')
+    logging.info('')
     for Y in tabx:
         for x,y in Y.items():
             print(f"{x} : {y}",end = '|')
-        print('')
+        logging.info('')
 ###################################
 from phe import paillier
-def sumf(tabx,conn,pkr,id): # fonction de calcul de somme selon l'id de colonne
-    sum=0
+def sumf(tabx,pkr,id): # fonction de calcul de somme selon l'id de colonne
+    resulta=0
     n=0
     for x in tabx :
         n+=1
-        sum+=paillier.EncryptedNumber(pkr, int(list(x.values())[id][0]), int(list(x.values())[id][1]) )
-    print(f'la somme calculÃ© {sum}')
-    return n,sum
-####################################################
-def produit(data,conn): #Function used in Log mul 
-    print("The Data :",data)
-    if not data or data =="End":
-        print(" No Data Detected !")
-        return 1
-    else:
-        sum=0
-        for x in data :
-            sum+=x
-            print(f'le produit calculÃ© {sum}')
-    print("Final :_________",sum)
-    return sum
+        resulta+=paillier.EncryptedNumber(pkr, int(list(x.values())[id][0]), int(list(x.values())[id][1]) )
+    return n,resulta
+
 ############################################################
-def dbrecv(conn):
-    dbname=conn.recv(16).decode()
+def dbrecv(conn,addr):
+    dbname=conn.recv(128).decode()
     dbname = os.path.basename(dbname)
-    print(f"[+] the received file name : {dbname}")
-    print(f"Waitting for {dbname}..>>",end='..')
+    logging.info(f"[+] The received file name : {dbname}")
+    print(f"[*] Waitting for {dbname} from [ {addr[0]} ]..>>",end='..')
     while True:
         dirs = os.listdir( "/tmp/" )
         if dbname in dirs:
-            print("Got it !")
+            #logging.info("Got it !")
             break
         else:
             time.sleep(1)
             print("...",end='...')    
-    print("Done receiveing")
+    logging.info(f"[+] Done receiveing {dbname} from [ {addr[0]} ] ")
     os.chdir("/tmp")
-    print('The crypted file stocked in:      ', os.getcwd())
+    logging.info(f"[-*-] The crypted file stocked in: {os.getcwd()}")
     received_db= TinyDB(dbname)  # load database
-    print("\n")
-    print('The crypted file stocked in:      ', os.getcwd())
-    print('Listes des tableaux ',received_db.tables())
+    logging.info("\n")
+    logging.info(f'[-*-] Tables Lists : {received_db.tables()}')
     try:
         x=received_db.tables()
     except:
-        print("Reciveing data failed")
-        conn.send("Reciveing data failed".encode())
+        logging.info("[-] Reciveing data failed")
+        conn.send("[-] Reciveing data failed".encode())
         return  
     try:
         tabx=received_db.table(list(x)[0])
-        conn.send("Receiving Database Successfully".encode())
-        print("Receiving Database Successfully")
+        conn.send("[+] Receiving Database Successfully from [ {addr[0]} ]".encode())
     except:
-        conn.send("Reciveing data failed".encode())
+        conn.send("[-] Reciveing data failed".encode())
         return          
-    print("Received Table Head values :")
+    logging.info(f"[*] Head values of Received Table from [ {addr[0]} ].. ")
     for i in range(1,3):
         rdic=tabx.get(doc_id=i) # to check value type
-        print(rdic)
-    print("*************************************************************************")
-    print(tabx.all())
+        logging.info(rdic)
+        print('\n')
+    logging.info("*****************-*-*-*-*-*-**********************************************************")
+    logging.info("______________________________________________________________________________________\n")
     return tabx
-######################################################
 
