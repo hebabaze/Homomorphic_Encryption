@@ -13,7 +13,7 @@ logging.basicConfig(format=format,level=logging.INFO,datefmt="%H:%M:%S")
 def cleandb():
     import os
     try:
-        cmd = 'rm /tmp/*.db'
+        cmd = 'rm /tmp/*.dbx'
         os.system(cmd)
     except:
         logging.info('Clean directory')
@@ -55,15 +55,17 @@ def dbrecv(conn,addr):
     logging.info(f'[-*-] Tables Lists : {received_db.tables()}')
     try:
         x=received_db.tables()
-    except:
+    except Exception as e:
         logging.info("[-] Reciveing data failed")
-        conn.send("[-] Reciveing data failed".encode())
+        conn.send("Reciveing data failed".encode())
+        print(" from 61 line ",str(e))
         return  
     try:
         tabx=received_db.table(list(x)[0])
-        conn.send("[+] Receiving Database Successfully from [ {addr[0]} ]".encode())
-    except:
-        conn.send("[-] Reciveing data failed".encode())
+        conn.send("Receiving Database Successfully".encode())
+    except Exception as e :
+        conn.send("Reciveing data failed".encode())
+        print(" from 68 line ",str(e))
         return          
     logging.info(f"[*] Head values of Received Table from [ {addr[0]} ].. ")
     for i in range(1,3):

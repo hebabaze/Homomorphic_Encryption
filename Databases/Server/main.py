@@ -19,7 +19,7 @@ def main():
         conn = ssl.wrap_socket(conx, certfile='/root/FHE/cacert.pem',keyfile='/root/FHE/private.pem',server_side=True,cert_reqs=ssl.CERT_NONE,ssl_version=ssl.PROTOCOL_TLSv1_2)        
         thread = threading.Thread(target=handle_client, args=(conn, addr))
         thread.start()
-        logging.info(f"[ACTIVE CONNECTIONS] {threading.activeCount() - 1}")    
+        logging.info(f"[ACTIVE CONNECTIONS] {threading.activeCount() - 1}")
 def handle_client(conn, addr):
     wsx='figlet -ck  FHEDB | lolcat'
     os.system(wsx)
@@ -34,21 +34,20 @@ def handle_client(conn, addr):
             #Recover Public Key
             pkr = paillier.PaillierPublicKey(int(pks))
         #****************************************#
-        
         #_Recevoir la Base de données
         if flag=='3':
             logging.info(f"[*] Received falg {flag} \n")
             tabx=dbrecv(conn,addr)
         #Calcul de la Somme
         if flag=='4':
-            logging.info(f"[ =====*-*-*-*-*-*-*-*-*-*-*> __SUM__[{addr [0]}] <*-*-*-*-*-*-*-*-*-*-*-*-*-*-*=====]\n")        
+            logging.info(f"[ =====*-*-*-*-*-*-*-*-*-*-*> __SUM__[{addr [0]}] <*-*-*-*-*-*-*-*-*-*-*-*-*-*-*=====]\n")
             id=int(conn.recv(8).decode())
             n,rslt= sumf(tabx,pkr,id)
             logging.info(f'[*] The Crypted Sum Result {rslt} \n')
             conn.send(dill.dumps(rslt))
         #Calcul de la moyenne
         if flag=='5':
-            logging.info(f"[ =====*-*-*-*-*-*-*-*-*-*-*> __AVG__ [{addr[0]}]<*-*-*-*-*-*-*-*-*-*-*-*-*-*-*=====]\n")        
+            logging.info(f"[ =====*-*-*-*-*-*-*-*-*-*-*> __AVG__ [{addr[0]}]<*-*-*-*-*-*-*-*-*-*-*-*-*-*-*=====]\n")
             # Get Column id to Compute
             id=int(conn.recv(8).decode())
             n,s= sumf(tabx,pkr,id)
@@ -57,7 +56,6 @@ def handle_client(conn, addr):
             conn.send(dill.dumps(avg))
 
 #____Product Bloc
-        
         if flag=='6':
             logging.info(f"[ =====*-*-*-*-*-*-*-*-*-*-*> Log Mul [{addr[0]}] <*-*-*-*-*-*-*-*-*-*-*-*-*-*-*=====]\n")
             while True:
@@ -90,7 +88,7 @@ def handle_client(conn, addr):
                 j=j+1
                 conn.send(dill.dumps(sum(tab)))
         elif flag=='61':
-            logging.info(f"[ =====*-*-*-*-*-*-*-*-*-*> Multiplication Egyptian  [{addr}]<*-*-*-*-*-*-*-*-*=====]\n")
+            logging.info(f"[ =====*-*-*-*-*-*-*-*-*-*> Multiplication Egyptian  [{addr[0]}]<*-*-*-*-*-*-*-*-*=====]\n")
             while True:
                 start=time.time()
                 egytab= conn.recv(160000000)
@@ -99,24 +97,23 @@ def handle_client(conn, addr):
                     logging.warning('[-] Egyptian Multiplication Finished successfully ..!\n')
                     end=time.time()
                     logging.info(f"[-] Total Time {round((end-start)*1000,2)} ms \n")
-                    break    
-                logging.info(f'[+] Tab {j} From [{addr}]...__________________________\n')                           
-                logging.info(f"[+] Receiving Data : {egytab} \n ")
+                    break
+                logging.info(f"[+] Receiving Data from {addr[0]}: {egytab} \n ")
                 conn.send(dill.dumps(sum(egytab)))
         elif flag=='10':
             logging.info("Egy Mul From Calc")
             start=time.time()
             egytab2= conn.recv(160000000)
-            egytab2=dill.loads(egytab2)   
-            logging.info(f'[+] Tab From [{addr[0]}]...__________________________\n')                           
+            egytab2=dill.loads(egytab2)
+            logging.info(f'[+] Tab From [{addr[0]}]...__________________________\n')
             logging.info(f"[+] Receiving Data : {egytab2} \n ")
-            conn.send(dill.dumps(sum(egytab2)))            
+            conn.send(dill.dumps(sum(egytab2)))
         elif flag=='11':
             logging.info("[+] Russ Mul From Calc")
             tab= conn.recv(BS)
             tab=dill.loads(tab)
             logging.info(f"[+] Received tab  {tab}\n")
-            conn.send(dill.dumps(sum(tab)))               
+            conn.send(dill.dumps(sum(tab)))
         elif flag=='12':
             logging.info("[+] Log Mul Mul From Calc")
             start=time.time()
@@ -125,19 +122,15 @@ def handle_client(conn, addr):
             logging.info(f"[+] Received Data from [{addr[0]}]: {data} \n")
             logging.info(f'[+] Tab  From [{addr}]...__________________________\n')
             logging.info(f"[+] Received tab  {data}\n")
-            conn.send(dill.dumps(sum(data)))            
-         
+            conn.send(dill.dumps(sum(data)))
         elif flag=='13':
             print("[+] Sum Op From Calc")
             res13=conn.recv(BS)
             res13=dill.loads(res13)
             print(res13)
             conn.send(dill.dumps(sum(res13)))
-                    
         elif flag=='exit':
             logging.info(f"[DISCONNECTED] {addr} disconnected")
     conn.close()
-          
 if __name__ == "__main__":
     main()
-
